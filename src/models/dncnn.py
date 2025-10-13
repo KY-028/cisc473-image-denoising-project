@@ -1,0 +1,41 @@
+import torch.nn as nn
+"""
+Simple lightweight DnCNN model for grayscale image denoising.
+It learns to predict noise and removes it from the input image.
+"""
+class DnCnn(nn.Module):
+    def __init__(self, image_channels = 1, n_channels = 64):
+        # image_channels : number of input/ouput channels. For grey = 1
+        # n_channels: number of neuron in each hidden layer
+        super().__init__()
+        # Layer 1: Conv + ReLU
+        # bias=True since it works on raw pixels (no BatchNorm here)
+        # preventing gradient vanishing
+        self.layer1 = nn.Sequential(
+                nn.Conv2d(image_channels, n_channels, kernel_size=3, padding=1, bias=True),
+                nn.ReLU(inplace=True)
+        )
+        
+        # Layer 2–3: Conv + BN + ReLU
+        # bias=False because BatchNorm has included
+        self.layer2 = nn.Sequential(
+                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(n_channels),
+                nn.ReLU(inplace=True)
+        )
+        self.layer3 = nn.Sequential(
+                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(n_channels),
+                nn.ReLU(inplace=True)
+        )
+        # Combine 64 feature maps into one predicted noise map (1 channel)
+        self.output = nn.Conv2d(n_channels, image_channels, kernel_size=3, padding=1, bias=False)
+
+    def forward(self, x):
+        # extract noise features and perdict noise image
+        out = self.layer1(x)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        noise = self.output(out)
+        # input image - noise image = clean image
+        return x - noise
