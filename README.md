@@ -1,9 +1,8 @@
 # Lightweight Image Denoising
 
-**Team Members:** Kevin Yao, Steven Li, Zhangzhengyang Song
-**Project for CISC 473**
+**Project for CISC 473 - Deep Learning**
 
----
+**Team Members:** Kevin Yao, Steven Li, Zhangzhengyang Song
 
 ## 🚀 Project Overview
 
@@ -15,30 +14,28 @@ Our guiding questions:
 - Can simple pruning, quantization, or architectural tweaks yield significant performance gains?
 - How do different noise types (Gaussian, real-world, smartphone) affect results?
 
----
-
 ## 📚 Key References
 
-- *DnCNN: Beyond a Gaussian Denoiser* (Zhang et al., 2017)  
-- *Restormer: Efficient Transformer for High-Resolution Image Restoration* (Zamir et al., 2021) :contentReference[oaicite:0]{index=0}  
-- *NAFNet: Nonlinear Activation Free Network for Image Restoration*  
-- *LIDIA: Lightweight Learned Image Denoising with Instance Adaptation* (Vaksman, Elad, Milanfar, 2019) :contentReference[oaicite:1]{index=1}  
-- *Thunder: Thumbnail-based Fast Lightweight Image Denoising Network* (Zhou et al., 2022) :contentReference[oaicite:2]{index=2}  
+- [_DnCNN: Beyond a Gaussian Denoiser_ (Zhang et al., 2017)](https://arxiv.org/abs/1608.03981)
+- [_Restormer: Efficient Transformer for High-Resolution Image Restoration_ (Zamir et al., 2021)](https://arxiv.org/abs/2111.09881)
+- [_Simple Baselines for Image Restoration_](https://arxiv.org/abs/2204.04676)
 
-We also examine relevant open-source repos such as [LIDIA-denoiser](https://github.com/grishavak/LIDIA-denoiser) :contentReference[oaicite:3]{index=3}, [LWDN](https://github.com/rami0205/LWDN) :contentReference[oaicite:4]{index=4}, and more.
+Unsure
 
----
+- _LIDIA: Lightweight Learned Image Denoising with Instance Adaptation_ (Vaksman, Elad, Milanfar, 2019)
+- _Thunder: Thumbnail-based Fast Lightweight Image Denoising Network_ (Zhou et al., 2022)
 
 ## 🛠 Setup & Usage
 
 ### Requirements
 
-- Python 3.8+  
-- PyTorch  
-- torchvision, numpy, PIL  
-- (Optional) CUDA for GPU training  
+- Python 3.8+
+- PyTorch
+- torchvision, numpy, PIL
+- (Optional) CUDA for GPU training
 
 Install via:
 
 ```bash
 pip install -r requirements.txt
+```
