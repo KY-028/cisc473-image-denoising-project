@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Additional datasets (please download and unzip yourself)
+SIDD*/
+
+.DS_Store
