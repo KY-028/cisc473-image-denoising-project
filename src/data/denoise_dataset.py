@@ -9,7 +9,7 @@ class DenoiseDataset(Dataset):
     """
     loads grayscale images, adds Gaussian noise, and returns (noisy, clean) pairs for denoising.
     """
-    def __init__(self, folder, size=64, sigma=25/255.0, augment=True):
+    def __init__(self, folder, size=64, sigma=25/255.0):
         """
         Initialize the dataset by collecting all image file paths.
         folder : Path to the folder containing images.
@@ -20,7 +20,6 @@ class DenoiseDataset(Dataset):
         self.files = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(".png")]
         self.size = size
         self.sigma = sigma
-        self.augment = augment
 
     def __len__(self):
         return len(self.files)
@@ -32,20 +31,11 @@ class DenoiseDataset(Dataset):
         # normalize to [0,1]
         img = img.astype(np.float32) / 255.0
 
-        # flip for simple augmentation
-        if self.augment:
-            if np.random.rand() < 0.5:
-                # flip left-right
-                img = np.fliplr(img)
-            if np.random.rand() < 0.5:
-                # flip up-down
-                img = np.flipud(img)
-
         # add Gaussian noise
         noise = np.random.randn(*img.shape) * self.sigma
         noisy = np.clip(img + noise, 0, 1)
 
         # convert to torch tensors, shape (1, H, W)
-        clean = torch.tensor(img).unsqueeze(0)
-        noisy = torch.tensor(noisy).unsqueeze(0)
+        clean = torch.tensor(img.copy(), dtype=torch.float32).unsqueeze(0)
+        noisy = torch.tensor(noisy.copy(), dtype=torch.float32).unsqueeze(0)
         return noisy, clean
