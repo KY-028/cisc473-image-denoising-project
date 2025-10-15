@@ -9,7 +9,6 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from ..models.dncnn import DnCnn
 from ..data.denoise_dataset import DenoiseDataset
 
-# python -m src.train.train_dncnn
 # Get current folder path and make a folder to save models
 current_dir = os.path.dirname(__file__)
 save_dir = os.path.join(current_dir, '..', 'checkpoints')

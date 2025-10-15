@@ -39,3 +39,13 @@ Install via:
 ```bash
 pip install -r requirements.txt
 ```
+
+## How to Run the Training
+
+Make sure you are in the project root folder (the same level as `src/`).
+
+Then run the training script using module mode:
+
+```bash
+python -m src.train.train_dncnn
+```
