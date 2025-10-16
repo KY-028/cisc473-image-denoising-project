@@ -9,6 +9,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from ..models.dncnn import DnCnn
 from ..data.denoise_dataset import DenoiseDataset
 
+# python -m src.train.train_dncnn
 # Get current folder path and make a folder to save models
 current_dir = os.path.dirname(__file__)
 save_dir = os.path.join(current_dir, '..', 'checkpoints')
@@ -34,18 +35,39 @@ criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2, verbose=True)
 
-# Training settings
-epochs = 10
+best_model_path = os.path.join(save_dir, "dncnn_best.pth")
+history_path = os.path.join(save_dir, "training_history.pkl")
+
 best_val_loss = float('inf')
-train_loss_list = []
-val_loss_list = []
+train_loss_list, val_loss_list = [], []
+
+if os.path.exists(best_model_path):
+    checkpoint = torch.load(best_model_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+    best_val_loss = checkpoint.get('best_val_loss', float('inf'))
+    print("Loaded existing model from previous run.")
+
+# load old history if exists
+if os.path.exists(history_path):
+    with open(history_path, 'rb') as f:
+        history = pickle.load(f)
+        train_loss_list = history.get('train_loss', [])
+        val_loss_list = history.get('val_loss', [])
+    print(f"Loaded previous training history ({len(train_loss_list)} epochs).")
+
+# Continue training from previous history if exists
+epochs = 10
 patience = 5
 no_improve = 0
 
-
+start_epoch = len(train_loss_list)
+print(f"Starting from epoch {start_epoch} with best_val_loss={best_val_loss:.6f}")
 start_time = time.time()
+
 # Start training
-for epoch in range(epochs):
+for epoch in range(start_epoch, start_epoch + epochs):
     model.train()
     train_loss = 0.0
     for noisy, clean in trainloader:
@@ -72,12 +94,17 @@ for epoch in range(epochs):
     val_loss_list.append(avg_val_loss)
     scheduler.step(avg_val_loss)
 
-    print(f"Epoch [{epoch+1}/{epochs}]  Train Loss: {avg_train_loss:.6f}  Val Loss: {avg_val_loss:.6f}")
+    print(f"Epoch [{epoch+1}/{start_epoch + epochs}]  Train Loss: {avg_train_loss:.6f}  Val Loss: {avg_val_loss:.6f}")
 
     # Save best model
     if avg_val_loss < best_val_loss:
         best_val_loss = avg_val_loss
-        torch.save(model.state_dict(), os.path.join(save_dir, "dncnn_best.pth"))
+        torch.save({
+            'model_state_dict': model.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'scheduler_state_dict': scheduler.state_dict(),
+            'best_val_loss': best_val_loss
+        }, best_model_path)
         print(" New best model saved.")
         no_improve = 0
     else:
