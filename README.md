@@ -49,3 +49,9 @@ Then run the training script using module mode:
 ```bash
 python -m src.train.train_dncnn
 ```
+
+After training, run the visualization script to display results and compute PSNR/SSIM:
+
+```bash
+python -m src.visualize.visualize_denoising
+```

@@ -5,8 +5,10 @@ It learns to predict noise and removes it from the input image.
 """
 class DnCnn(nn.Module):
     def __init__(self, image_channels = 1, n_channels = 64):
-        # image_channels : number of input/ouput channels. For grey = 1
-        # n_channels: number of neuron in each hidden layer
+        """
+        image_channels : number of input/ouput channels. For grey = 1
+        n_channels: number of neuron in each hidden layer    
+        """
         super().__init__()
         # Layer 1: Conv + ReLU
         # bias=True since it works on raw pixels (no BatchNorm here)
