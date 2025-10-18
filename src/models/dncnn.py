@@ -4,10 +4,13 @@ Simple lightweight DnCNN model for grayscale image denoising.
 It learns to predict noise and removes it from the input image.
 """
 class DnCnn(nn.Module):
-    def __init__(self, image_channels = 1, n_channels = 64):
+    def __init__(self, image_channels=1, n_channels=64):
         """
-        image_channels : number of input/ouput channels. For grey = 1
-        n_channels: number of neuron in each hidden layer    
+        Initialize the DnCnn model.
+
+        Args:
+            image_channels: number of input/output channels. For grey = 1
+            n_channels: number of neurons in each hidden layer
         """
         super().__init__()
         # Layer 1: Conv + ReLU
@@ -34,6 +37,14 @@ class DnCnn(nn.Module):
         self.output = nn.Conv2d(n_channels, image_channels, kernel_size=3, padding=1, bias=False)
 
     def forward(self, x):
+        """
+        Forward pass of the DnCnn model.
+        
+        Args:
+            x: noisy input image tensor
+        Returns:
+            denoised image tensor
+        """
         # extract noise features and perdict noise image
         out = self.layer1(x)
         out = self.layer2(out)

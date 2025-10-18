@@ -9,15 +9,16 @@ class DenoiseDataset(Dataset):
     """
     loads grayscale images, adds Gaussian noise, and returns (noisy, clean) pairs for denoising.
     """
-    def __init__(self, folder, size=64, sigma=25/255.0):
+    def __init__(self, dir, size=64, sigma=25/255.0):
         """
         Initialize the dataset by collecting all image file paths.
-        folder : Path to the folder containing images.
-        size : Resize all images to (size x size).
-        sigma : Standard deviation of Gaussian noise.
-        augment : Whether to apply random flips for data augmentation.
+
+        Arguments:
+            dir: Path to the directory containing images.
+            size: Resize all images to (size x size).
+            sigma: Standard deviation of intended Gaussian noise generation.
         """
-        self.files = [os.path.join(folder, f) for f in os.listdir(folder) if f.endswith(".png")]
+        self.files = [os.path.join(dir, f) for f in os.listdir(dir) if f.endswith(".png")]
         self.size = size
         self.sigma = sigma
 
@@ -25,10 +26,19 @@ class DenoiseDataset(Dataset):
         return len(self.files)
 
     def __getitem__(self, idx):
+        """
+        Get a noisy-clean image pair based on index.
+        
+        Arguments:
+            idx: Index of the image to load.
+        Returns:
+            A tuple (noisy_image, clean_image), both as torch tensors of shape (1, H, W).
+        """
         # load grayscale image
         img = cv2.imread(self.files[idx], cv2.IMREAD_GRAYSCALE)
         img = cv2.resize(img, (self.size, self.size))
-        # normalize to [0,1]
+        
+        # normalize pixels to [0,1]
         img = img.astype(np.float32) / 255.0
 
         # add Gaussian noise

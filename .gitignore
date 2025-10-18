@@ -210,3 +210,7 @@ __marimo__/
 SIDD*/
 
 .DS_Store
+**/.DS_Store
+
+# Cloned Code Repositories
+external/*
