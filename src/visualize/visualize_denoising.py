@@ -1,3 +1,13 @@
+"""
+DnCNN Model Visualization Script
+
+Evaluates a trained DnCNN model on a sample image from BSD68 dataset.
+Calculates PSNR, SSIM and display it in a matplotlib plot.
+
+Usage: python -m src.visualize.visualize_denoising
+"""
+
+import time
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
@@ -5,9 +15,6 @@ from torchvision import transforms
 from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 from src.models.dncnn import DnCnn
 from PIL import Image
-import cv2
-
-# python -m src.visualize.visualize_denoising
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = DnCnn().to(device)

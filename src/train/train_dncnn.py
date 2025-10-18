@@ -33,7 +33,7 @@ valloader = DataLoader(val_set, batch_size=16, shuffle=False)
 model = DnCnn().to(device)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)
+scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
 
 best_model_path = os.path.join(save_dir, "dncnn_best.pth")
 history_path = os.path.join(save_dir, "training_history.pkl")

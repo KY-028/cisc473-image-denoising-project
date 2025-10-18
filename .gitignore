@@ -214,3 +214,6 @@ SIDD*/
 
 # Cloned Code Repositories
 external/*
+
+# checkpoint files
+src/checkpoints/*

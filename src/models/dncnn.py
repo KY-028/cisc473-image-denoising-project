@@ -21,53 +21,15 @@ class DnCnn(nn.Module):
                 nn.ReLU(inplace=True)
         )
         
-        # Layer 2–10: Conv + BN + ReLU
-        # bias=False because BatchNorm has included
-        self.layer2 = nn.Sequential(
+        # Layer 2–10: Conv + BN + ReLU created in a loop
+        # bias=False because BatchNorm is used
+        for i in range(2, 11):
+            seq = nn.Sequential(
                 nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
                 nn.BatchNorm2d(n_channels),
                 nn.ReLU(inplace=True)
-        )
-        self.layer3 = nn.Sequential(
-                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
-                nn.BatchNorm2d(n_channels),
-                nn.ReLU(inplace=True)
-        )
-        self.layer4 = nn.Sequential(
-                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
-                nn.BatchNorm2d(n_channels),
-                nn.ReLU(inplace=True)
-        )
-        self.layer5 = nn.Sequential(
-                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
-                nn.BatchNorm2d(n_channels),
-                nn.ReLU(inplace=True)
-        )
-        self.layer6 = nn.Sequential(
-                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
-                nn.BatchNorm2d(n_channels),
-                nn.ReLU(inplace=True)
-        )
-        self.layer7 = nn.Sequential(
-                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
-                nn.BatchNorm2d(n_channels),
-                nn.ReLU(inplace=True)
-        )
-        self.layer8 = nn.Sequential(
-                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
-                nn.BatchNorm2d(n_channels),
-                nn.ReLU(inplace=True)
-        )
-        self.layer9 = nn.Sequential(
-                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
-                nn.BatchNorm2d(n_channels),
-                nn.ReLU(inplace=True)
-        )
-        self.layer10 = nn.Sequential(
-                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
-                nn.BatchNorm2d(n_channels),
-                nn.ReLU(inplace=True)
-        )
+            )
+            setattr(self, f"layer{i}", seq)
         # Combine 64 feature maps into one predicted noise map (1 channel)
         self.output = nn.Conv2d(n_channels, image_channels, kernel_size=3, padding=1, bias=False)
 
