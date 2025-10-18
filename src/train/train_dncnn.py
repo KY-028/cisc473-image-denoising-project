@@ -20,20 +20,20 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
 # Load dataset and split into train and validation sets
-dataset = DenoiseDataset(folder="BSD68", size=64, sigma=25/255.0)
+dataset = DenoiseDataset(dirs=["BSD68","BSDS300"], size=128, sigma=25/255.0)
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 train_set, val_set = random_split(dataset, [train_size, val_size])
 
 # Create data loaders
-trainloader = DataLoader(train_set, batch_size=8, shuffle=True)
-valloader = DataLoader(val_set, batch_size=8, shuffle=False)
+trainloader = DataLoader(train_set, batch_size=16, shuffle=True)
+valloader = DataLoader(val_set, batch_size=16, shuffle=False)
 
 # Build model, loss, optimizer, and scheduler
 model = DnCnn().to(device)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=2, verbose=True)
+scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)
 
 best_model_path = os.path.join(save_dir, "dncnn_best.pth")
 history_path = os.path.join(save_dir, "training_history.pkl")
@@ -58,8 +58,8 @@ if os.path.exists(history_path):
     print(f"Loaded previous training history ({len(train_loss_list)} epochs).")
 
 # Continue training from previous history if exists
-epochs = 10
-patience = 5
+epochs = 100
+patience = 10
 no_improve = 0
 
 start_epoch = len(train_loss_list)

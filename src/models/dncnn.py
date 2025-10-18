@@ -21,7 +21,7 @@ class DnCnn(nn.Module):
                 nn.ReLU(inplace=True)
         )
         
-        # Layer 2–3: Conv + BN + ReLU
+        # Layer 2–10: Conv + BN + ReLU
         # bias=False because BatchNorm has included
         self.layer2 = nn.Sequential(
                 nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
@@ -29,6 +29,41 @@ class DnCnn(nn.Module):
                 nn.ReLU(inplace=True)
         )
         self.layer3 = nn.Sequential(
+                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(n_channels),
+                nn.ReLU(inplace=True)
+        )
+        self.layer4 = nn.Sequential(
+                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(n_channels),
+                nn.ReLU(inplace=True)
+        )
+        self.layer5 = nn.Sequential(
+                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(n_channels),
+                nn.ReLU(inplace=True)
+        )
+        self.layer6 = nn.Sequential(
+                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(n_channels),
+                nn.ReLU(inplace=True)
+        )
+        self.layer7 = nn.Sequential(
+                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(n_channels),
+                nn.ReLU(inplace=True)
+        )
+        self.layer8 = nn.Sequential(
+                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(n_channels),
+                nn.ReLU(inplace=True)
+        )
+        self.layer9 = nn.Sequential(
+                nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(n_channels),
+                nn.ReLU(inplace=True)
+        )
+        self.layer10 = nn.Sequential(
                 nn.Conv2d(n_channels, n_channels, kernel_size=3, padding=1, bias=False),
                 nn.BatchNorm2d(n_channels),
                 nn.ReLU(inplace=True)
@@ -49,6 +84,13 @@ class DnCnn(nn.Module):
         out = self.layer1(x)
         out = self.layer2(out)
         out = self.layer3(out)
+        out = self.layer4(out)
+        out = self.layer5(out)
+        out = self.layer6(out)
+        out = self.layer7(out)
+        out = self.layer8(out)
+        out = self.layer9(out)
+        out = self.layer10(out)
         noise = self.output(out)
         # input image - noise image = clean image
         return x - noise

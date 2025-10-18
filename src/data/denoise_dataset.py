@@ -3,22 +3,29 @@ import torch.nn as nn
 import os
 import numpy as np
 import cv2
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 class DenoiseDataset(Dataset):
     """
     loads grayscale images, adds Gaussian noise, and returns (noisy, clean) pairs for denoising.
     """
-    def __init__(self, dir, size=64, sigma=25/255.0):
+    def __init__(self, dirs, size=64, sigma=25/255.0):
         """
         Initialize the dataset by collecting all image file paths.
 
         Arguments:
-            dir: Path to the directory containing images.
+            dirs: Path to the directory containing images.
             size: Resize all images to (size x size).
             sigma: Standard deviation of intended Gaussian noise generation.
         """
-        self.files = [os.path.join(dir, f) for f in os.listdir(dir) if f.endswith(".png")]
+
+        if isinstance(dirs, str):
+            dirs = [dirs]
+        self.files = []
+        for d in dirs:
+            for f in os.listdir(d):
+                if f.lower().endswith((".png", ".jpg")):
+                    self.files.append(os.path.join(d, f))
         self.size = size
         self.sigma = sigma
 
