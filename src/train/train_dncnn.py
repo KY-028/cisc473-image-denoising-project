@@ -1,3 +1,11 @@
+"""
+DnCNN Training Script
+Trains a DnCNN model on the BSD68 and BSDS300 datasets for image denoising.
+Saves the best model based on validation loss and plots training curves.
+
+Usage: python -m src.train.train_dncnn
+"""
+
 import os
 import time
 import torch
@@ -9,7 +17,6 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from ..models.dncnn import DnCnn
 from ..data.denoise_dataset import DenoiseDataset
 
-# python -m src.train.train_dncnn
 # Get current folder path and make a folder to save models
 current_dir = os.path.dirname(__file__)
 save_dir = os.path.join(current_dir, '..', 'checkpoints')
