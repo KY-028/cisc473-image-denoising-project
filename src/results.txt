@@ -1,0 +1,25 @@
+TRAINING METRICS:
+------------------------------
+Training Time:          26:20.01
+Final Training Loss:    0.003224
+Final Validation Loss:  0.003123
+
+AVERAGE METRICS:
+------------------------------
+PSNR:           26.24 ± 0.92 dB
+SSIM:           0.732 ± 0.038
+Inference Time: 0.047659 ± 0.005819 s
+
+INDIVIDUAL RESULTS:
+--------------------------------------------------------
+Image           PSNR (dB)  SSIM     Inference Time (s) 
+--------------------------------------------------------
+test050.png     25.74      0.702    0.063746
+test040.png     26.39      0.735    0.048224
+test032.png     24.79      0.722    0.047356
+test025.png     26.68      0.725    0.046586
+test024.png     25.24      0.801    0.046693
+test057.png     27.88      0.677    0.046240
+test005.png     25.70      0.716    0.042793
+test042.png     27.18      0.705    0.043039
+test001.png     25.73      0.737    0.049455
