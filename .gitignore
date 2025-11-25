@@ -217,3 +217,5 @@ external/*
 
 # checkpoint files
 src/checkpoints/*
+
+*.pdf
