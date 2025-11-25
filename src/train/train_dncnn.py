@@ -52,7 +52,10 @@ if os.path.exists(best_model_path):
     checkpoint = torch.load(best_model_path)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+    try:
+        scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+    except Exception:
+        print("Scheduler state from previous run not compatible; restarting scheduler.")
     best_val_loss = checkpoint.get('best_val_loss', float('inf'))
     print("Loaded existing model from previous run.")
 

@@ -42,7 +42,7 @@ class DnCnn(nn.Module):
         Returns:
             denoised image tensor
         """
-        # extract noise features and perdict noise image
+        # extract noise features and predict noise image
         out = self.layer1(x)
         out = self.layer2(out)
         out = self.layer3(out)
