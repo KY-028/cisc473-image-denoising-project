@@ -44,15 +44,23 @@ Then run the training script using module mode:
 ```bash
 python -m src.train.train_dncnn
 ```
+```bash
+python -m src.train.train_nafnet
+```
 
 After training, run the visualization script to display results and compute PSNR/SSIM:
 
 ```bash
-python -m src.visualize.visualize_denoising
+python -m src.visualize.visualize_denoising dncnn
 ```
-
+```bash
+python -m src.visualize.visualize_denoising nafnet
+```
 You may also run the test script with a set seed to replicate results shown in the report.
 
 ```bash
-python -m src.test.test_dncnn
+python -m src.test.test_model dncnn
+```
+```bash
+python -m src.test.test_model nafnet
 ```

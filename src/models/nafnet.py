@@ -112,10 +112,10 @@ class NAFNet(nn.Module):
     """
     def __init__(
         self,
-        img_channels: int = 3,
+        img_channels: int = 1,
         width: int = 16,
         middle_blk_num: int = 1,
-        enc_blk_nums=(1, 1, 1, 28),
+        enc_blk_nums=(1, 1, 1, 1),
         dec_blk_nums=(1, 1, 1, 1),
     ):
         super().__init__()

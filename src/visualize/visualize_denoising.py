@@ -1,10 +1,12 @@
 """
-DnCNN Model Visualization Script
+Model Visualization Script
 
-Evaluates a trained DnCNN model on a sample image from BSD68 dataset.
+Evaluates a trained model on a sample image from BSD68 dataset.
 Calculates PSNR, SSIM and display it in a matplotlib plot.
 
-Usage: python -m src.visualize.visualize_denoising
+Usage: 
+    python -m src.visualize.visualize_denoising dncnn
+    python -m src.visualize.visualize_denoising nafnet
 """
 
 import time
@@ -13,19 +15,39 @@ import matplotlib.pyplot as plt
 import numpy as np
 from torchvision import transforms
 from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
-from src.models.dncnn import DnCnn
 from PIL import Image
+import sys
+
+if len(sys.argv) > 1:
+    MODEL_TYPE = sys.argv[1]
+else:
+    MODEL_TYPE = "dncnn"
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-model = DnCnn().to(device)
-# load the trained model parameters from checkpoint
-checkpoint = torch.load("src/checkpoints/dncnn_best.pth", map_location=device)
+
+if MODEL_TYPE == "dncnn":
+    from src.models.dncnn import DnCnn
+    model = DnCnn().to(device)
+    # load the trained model parameters from checkpoint
+    checkpoint = torch.load("src/checkpoints/dncnn_best.pth", map_location=device)
+
+elif MODEL_TYPE == "nafnet":
+    from src.models.nafnet import NAFNet
+    model = NAFNet().to(device)
+    # load the trained model parameters from checkpoint
+    checkpoint = torch.load("src/checkpoints/nafnet_small_best.pth", map_location=device)
+
+
 model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
 # load test image
 img_path = "BSD68/test001.png"
 img = Image.open(img_path)
+if MODEL_TYPE == "dncnn":
+    img = img.convert("L")
+elif MODEL_TYPE == "nafnet":
+    img = img.convert("L")
 
 # resize image and convert to tensor
 transform = transforms.Compose([

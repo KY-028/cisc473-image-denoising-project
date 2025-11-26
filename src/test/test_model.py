@@ -1,10 +1,12 @@
 """
-DnCNN Model Performance Evaluation Script
+Model Performance Evaluation Script
 
-Evaluates a trained DnCNN model on 10 randomly selected BSD68 images.
+Evaluates a trained model on 10 randomly selected BSD68 images.
 Calculates PSNR, SSIM, inference time, and CPU runtime metrics.
 
-Usage: python -m src.test.test_dncnn
+Usage:
+    python -m src.test.test_model dncnn
+    python -m src.test.test_model nafnet
 """
 
 import os
@@ -16,18 +18,31 @@ from torchvision import transforms
 from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 from src.models.dncnn import DnCnn
 from PIL import Image
+import sys
 
-def test_dncnn_performance():
+if len(sys.argv) > 1:
+    MODEL_TYPE = sys.argv[1]
+else:
+    MODEL_TYPE = "dncnn"
+
+def test_performance():
     """
-    Test DnCNN model performance on randomly selected BSD68 images.
+    Test model performance on randomly selected BSD68 images.
     Calculates PSNR, SSIM, inference time, and CPU runtime metrics.
     """
     # Initialize model on CPU
     device = torch.device('cpu')
-    model = DnCnn().to(device)
+    # Select model type
+    if MODEL_TYPE == "dncnn":
+        from src.models.dncnn import DnCnn
+        model = DnCnn().to(device)
+        checkpoint_path = "src/checkpoints/dncnn_best.pth"
+
+    elif MODEL_TYPE == "nafnet":
+        from src.models.nafnet import NAFNet
+        model = NAFNet().to(device)
+        checkpoint_path = "src/checkpoints/nafnet_small_best.pth"
     
-    # Load trained model parameters from checkpoint
-    checkpoint_path = "src/checkpoints/dncnn_best.pth"
     if not os.path.exists(checkpoint_path):
         raise FileNotFoundError(f"Checkpoint not found at {checkpoint_path}")
     
@@ -160,4 +175,4 @@ if __name__ == "__main__":
     np.random.seed(42)
     
     # Run the test
-    results = test_dncnn_performance()
+    results = test_performance()
