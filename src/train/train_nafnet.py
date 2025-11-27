@@ -30,7 +30,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
 # Load dataset
-dataset = DenoiseDataset(dirs=["BSD68", "BSDS300"], size=128, sigma=25/255.0)
+dataset = DenoiseDataset(dirs=["BSDS300/images/train"], size=128, sigma=25/255.0, channels=3)
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 train_set, val_set = random_split(dataset, [train_size, val_size])
@@ -40,7 +40,7 @@ trainloader = DataLoader(train_set, batch_size=16, shuffle=True)
 valloader = DataLoader(val_set, batch_size=16, shuffle=False)
 
 # Build lightweight NAFNet-small
-model = NAFNet().to(device)
+model = NAFNet(img_channels=3).to(device)
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)

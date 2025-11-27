@@ -1,7 +1,7 @@
 """
 Model Performance Evaluation Script
 
-Evaluates a trained model on 10 randomly selected BSD68 images.
+Evaluates a trained model on 10 randomly selected BSDS300 images.
 Calculates PSNR, SSIM, inference time, and CPU runtime metrics.
 
 Usage:
@@ -27,7 +27,7 @@ else:
 
 def test_performance():
     """
-    Test model performance on randomly selected BSD68 images.
+    Test model performance on randomly selected BSDS300 images.
     Calculates PSNR, SSIM, inference time, and CPU runtime metrics.
     """
     # Initialize model on CPU
@@ -35,12 +35,12 @@ def test_performance():
     # Select model type
     if MODEL_TYPE == "dncnn":
         from src.models.dncnn import DnCnn
-        model = DnCnn().to(device)
+        model = DnCnn(image_channels=3).to(device)
         checkpoint_path = "src/checkpoints/dncnn_best.pth"
 
     elif MODEL_TYPE == "nafnet":
         from src.models.nafnet import NAFNet
-        model = NAFNet().to(device)
+        model = NAFNet(image_channels=3).to(device)
         checkpoint_path = "src/checkpoints/nafnet_small_best.pth"
     
     if not os.path.exists(checkpoint_path):
@@ -50,14 +50,14 @@ def test_performance():
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()
     
-    # Get list of all BSD68 images
-    bsd68_dir = "BSD68"
-    if not os.path.exists(bsd68_dir):
-        raise FileNotFoundError(f"BSD68 directory not found at {bsd68_dir}")
+    # Get list of all BSD300 images
+    bsds300_dir = "BSDS300/images/test"
+    if not os.path.exists(bsds300_dir):
+        raise FileNotFoundError(f"BSDS300 directory not found at {bsds300_dir}")
     
-    all_images = [f for f in os.listdir(bsd68_dir) if f.endswith('.png')]
+    all_images = [f for f in os.listdir(bsds300_dir) if f.endswith('.jpg')]
     if len(all_images) < 10:
-        raise ValueError(f"Not enough images in BSD68 directory. Found {len(all_images)}, need at least 10")
+        raise ValueError(f"Not enough images in BSDS300 directory. Found {len(all_images)}, need at least 10")
     
     # Randomly select 10 images
     selected_images = random.sample(all_images, 10)
@@ -82,15 +82,15 @@ def test_performance():
     noise_level = 25 / 255.0
     
     for img_name in selected_images:
-        img_path = os.path.join(bsd68_dir, img_name)
+        img_path = os.path.join(bsds300_dir, img_name)
         
         # Start measuring total CPU runtime
         cpu_start_time = time.time()
         
         # Load and preprocess image
         img = Image.open(img_path)
-        if img.mode != 'L':
-            img = img.convert('L')
+        if img.mode != "RGB":
+            img = img.convert("RGB")
         
         clean = transform(img).unsqueeze(0)
         

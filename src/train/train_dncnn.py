@@ -1,6 +1,6 @@
 """
 DnCNN Training Script
-Trains a DnCNN model on the BSD68 and BSDS300 datasets for image denoising.
+Trains a DnCNN model on the BSDS300 datasets for image denoising.
 Saves the best model based on validation loss and plots training curves.
 
 Usage: python -m src.train.train_dncnn
@@ -27,7 +27,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
 # Load dataset and split into train and validation sets
-dataset = DenoiseDataset(dirs=["BSD68","BSDS300"], size=128, sigma=25/255.0)
+dataset = DenoiseDataset(dirs=["BSDS300/images/train"], size=128, sigma=25/255.0, channels=3)
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 train_set, val_set = random_split(dataset, [train_size, val_size])
@@ -37,7 +37,7 @@ trainloader = DataLoader(train_set, batch_size=16, shuffle=True)
 valloader = DataLoader(val_set, batch_size=16, shuffle=False)
 
 # Build model, loss, optimizer, and scheduler
-model = DnCnn().to(device)
+model = DnCnn(image_channels=3).to(device)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)

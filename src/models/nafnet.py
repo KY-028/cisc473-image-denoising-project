@@ -112,15 +112,15 @@ class NAFNet(nn.Module):
     """
     def __init__(
         self,
-        img_channels: int = 1,
+        image_channels: int = 3,
         width: int = 16,
         middle_blk_num: int = 1,
         enc_blk_nums=(1, 1, 1, 1),
         dec_blk_nums=(1, 1, 1, 1),
     ):
         super().__init__()
-        self.intro = nn.Conv2d(img_channels, width, kernel_size=3, padding=1)
-        self.ending = nn.Conv2d(width, img_channels, kernel_size=3, padding=1)
+        self.intro = nn.Conv2d(image_channels, width, kernel_size=3, padding=1)
+        self.ending = nn.Conv2d(width, image_channels, kernel_size=3, padding=1)
 
         self.encoders = nn.ModuleList()
         self.decoders = nn.ModuleList()

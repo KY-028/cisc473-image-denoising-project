@@ -9,7 +9,7 @@ class DenoiseDataset(Dataset):
     """
     loads grayscale images, adds Gaussian noise, and returns (noisy, clean) pairs for denoising.
     """
-    def __init__(self, dirs, size=64, sigma=25/255.0):
+    def __init__(self, dirs, size=64, sigma=25/255.0, channels=3):
         """
         Initialize the dataset by collecting all image file paths.
 
@@ -28,6 +28,7 @@ class DenoiseDataset(Dataset):
                     self.files.append(os.path.join(d, f))
         self.size = size
         self.sigma = sigma
+        self.channels = channels
 
     def __len__(self):
         return len(self.files)
@@ -41,10 +42,11 @@ class DenoiseDataset(Dataset):
         Returns:
             A tuple (noisy_image, clean_image), both as torch tensors of shape (1, H, W).
         """
-        # load grayscale image
-        img = cv2.imread(self.files[idx], cv2.IMREAD_GRAYSCALE)
+        # load image
+        img = cv2.imread(self.files[idx], cv2.IMREAD_COLOR)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = cv2.resize(img, (self.size, self.size))
-        
+
         # normalize pixels to [0,1]
         img = img.astype(np.float32) / 255.0
 
@@ -53,6 +55,6 @@ class DenoiseDataset(Dataset):
         noisy = np.clip(img + noise, 0, 1)
 
         # convert to torch tensors, shape (1, H, W)
-        clean = torch.tensor(img.copy(), dtype=torch.float32).unsqueeze(0)
-        noisy = torch.tensor(noisy.copy(), dtype=torch.float32).unsqueeze(0)
+        clean = torch.tensor(img.copy(), dtype=torch.float32).permute(2,0,1)
+        noisy = torch.tensor(noisy.copy(), dtype=torch.float32).permute(2,0,1)
         return noisy, clean

@@ -4,7 +4,7 @@ Simple lightweight DnCNN model for grayscale image denoising.
 It learns to predict noise and removes it from the input image.
 """
 class DnCnn(nn.Module):
-    def __init__(self, image_channels=1, n_channels=64):
+    def __init__(self, image_channels=3, n_channels=64):
         """
         Initialize the DnCnn model.
 

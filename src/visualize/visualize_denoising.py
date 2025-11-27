@@ -1,7 +1,7 @@
 """
 Model Visualization Script
 
-Evaluates a trained model on a sample image from BSD68 dataset.
+Evaluates a trained model on a sample image from BSDS300 dataset.
 Calculates PSNR, SSIM and display it in a matplotlib plot.
 
 Usage: 
@@ -27,13 +27,13 @@ device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 if MODEL_TYPE == "dncnn":
     from src.models.dncnn import DnCnn
-    model = DnCnn().to(device)
+    model = DnCnn(image_channels=3).to(device)
     # load the trained model parameters from checkpoint
     checkpoint = torch.load("src/checkpoints/dncnn_best.pth", map_location=device)
 
 elif MODEL_TYPE == "nafnet":
     from src.models.nafnet import NAFNet
-    model = NAFNet().to(device)
+    model = NAFNet(image_channels=3).to(device)
     # load the trained model parameters from checkpoint
     checkpoint = torch.load("src/checkpoints/nafnet_small_best.pth", map_location=device)
 
@@ -42,12 +42,10 @@ model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
 # load test image
-img_path = "BSD68/test001.png"
+img_path = "BSDS300/images/test/3096.jpg"
 img = Image.open(img_path)
-if MODEL_TYPE == "dncnn":
-    img = img.convert("L")
-elif MODEL_TYPE == "nafnet":
-    img = img.convert("L")
+img = img.convert("RGB")
+
 
 # resize image and convert to tensor
 transform = transforms.Compose([
@@ -73,7 +71,7 @@ ssim_value = ssim_metric(denoised, clean)
 
 def tensor_to_np(t):
     # convert tensor to numpy for visualization
-    arr = t.squeeze().detach().cpu().numpy()
+    arr = t.squeeze(0).permute(1,2,0).detach().cpu().numpy()
     return np.clip(arr, 0, 1)
 
 clean_np = tensor_to_np(clean)
@@ -82,17 +80,17 @@ denoised_np = tensor_to_np(denoised)
 
 plt.figure(figsize=(12,4))
 plt.subplot(1,3,1)
-plt.imshow(clean_np.squeeze(), cmap='gray')
+plt.imshow(clean_np)  
 plt.title("Original")
 plt.axis("off")
 
 plt.subplot(1,3,2)
-plt.imshow(noisy_np.squeeze(), cmap='gray')
+plt.imshow(noisy_np)
 plt.title("Noisy (σ=25)")
 plt.axis("off")
 
 plt.subplot(1,3,3)
-plt.imshow(denoised_np.squeeze(), cmap='gray')
+plt.imshow(denoised_np) 
 plt.title(f"Denoised\nPSNR: {psnr_value:.2f} dB\nSSIM: {ssim_value:.3f}")
 plt.axis("off")
 
