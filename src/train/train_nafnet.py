@@ -40,7 +40,7 @@ trainloader = DataLoader(train_set, batch_size=16, shuffle=True)
 valloader = DataLoader(val_set, batch_size=16, shuffle=False)
 
 # Build lightweight NAFNet-small
-model = NAFNet(img_channels=3).to(device)
+model = NAFNet(image_channels=3).to(device)
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
