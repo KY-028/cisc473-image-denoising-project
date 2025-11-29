@@ -43,7 +43,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
 
 best_model_path = os.path.join(save_dir, "dncnn_best.pth")
-history_path = os.path.join(save_dir, "training_history.pkl")
+history_path = os.path.join(save_dir, "dncnn_training_history.pkl")
 
 best_val_loss = float('inf')
 train_loss_list, val_loss_list = [], []
