@@ -21,6 +21,10 @@ class LayerNorm2d(nn.Module):
         self.eps = eps
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # If input is quantized, dequantize it first to avoid "empty_strided" errors
+        if x.is_quantized:
+            x = x.dequantize()
+
         mean = x.mean(dim=1, keepdim=True)
         var = (x - mean).pow(2).mean(dim=1, keepdim=True)
         x_norm = (x - mean) / torch.sqrt(var + self.eps)

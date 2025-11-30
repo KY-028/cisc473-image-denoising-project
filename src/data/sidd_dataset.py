@@ -27,7 +27,7 @@ class SIDDDataset(Dataset):
         for d in dirs:
             if not os.path.isdir(d):
                 continue
-            for scene in os.listdir(d):
+            for scene in sorted(os.listdir(d)):
                 scene_dir = os.path.join(d, scene)
                 if not os.path.isdir(scene_dir):
                     continue
