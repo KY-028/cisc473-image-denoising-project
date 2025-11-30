@@ -3,13 +3,16 @@ NAFNet-small Training Script
 Trains a lightweight NAFNet model on the BSD68 and BSDS300 datasets for image denoising.
 Saves the best model based on validation loss and plots training curves.
 
-Usage: python -m src.train.train_nafnet
+Usage:
+    python -m src.train.train_nafnet --dataset bsds
+    python -m src.train.train_nafnet --dataset sidd
 """
 
 import os
 import time
 import torch
 import pickle
+import argparse
 import matplotlib.pyplot as plt
 import torch.nn as nn
 from torch.utils.data import DataLoader, random_split
@@ -17,8 +20,9 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 # Import NAFNet-small model
 from ..models.nafnet import NAFNet
-# Import dataset loader
+# Import dataset loaders
 from ..data.denoise_dataset import DenoiseDataset
+from ..data.sidd_dataset import SIDDDataset, split_sidd_dataset
 
 # Prepare directories
 current_dir = os.path.dirname(__file__)
@@ -29,15 +33,28 @@ os.makedirs(save_dir, exist_ok=True)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Using device:", device)
 
+parser = argparse.ArgumentParser(description="Train NAFNet on BSDS or SIDD.")
+parser.add_argument("--dataset", choices=["bsds", "sidd"], default="bsds", help="Dataset to train on.")
+args = parser.parse_args()
+
+BATCH_SIZE = 16
+PATCH_SIZE = 128
+
 # Load dataset
-dataset = DenoiseDataset(dirs=["BSDS300/images/train"], size=128, sigma=25/255.0, channels=3)
-train_size = int(0.8 * len(dataset))
-val_size = len(dataset) - train_size
-train_set, val_set = random_split(dataset, [train_size, val_size])
+if args.dataset == "sidd":
+    dataset = SIDDDataset(dirs=["SIDD_Small_sRGB_Only/Data"], size=PATCH_SIZE, random_crop=True)
+    dataset_tag = "sidd"
+    train_set, val_set, _ = split_sidd_dataset(dataset, seed=42)
+else:
+    dataset = DenoiseDataset(dirs=["BSDS300/images/train"], size=PATCH_SIZE, sigma=25/255.0, channels=3)
+    dataset_tag = "bsds"
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+    train_set, val_set = random_split(dataset, [train_size, val_size])
 
 # DataLoaders
-trainloader = DataLoader(train_set, batch_size=16, shuffle=True)
-valloader = DataLoader(val_set, batch_size=16, shuffle=False)
+trainloader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)
+valloader = DataLoader(val_set, batch_size=BATCH_SIZE, shuffle=False)
 
 # Build lightweight NAFNet-small
 model = NAFNet(image_channels=3).to(device)
@@ -46,9 +63,9 @@ criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
 scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
 
-# Checkpoint paths
-best_model_path = os.path.join(save_dir, "nafnet_small_best.pth")
-history_path = os.path.join(save_dir, "nafnet_small_history.pkl")
+# Checkpoint paths (separate per dataset)
+best_model_path = os.path.join(save_dir, f"nafnet_small_best_{dataset_tag}.pth")
+history_path = os.path.join(save_dir, f"nafnet_small_history_{dataset_tag}.pkl")
 
 # Load previous checkpoint if exists
 best_val_loss = float('inf')
@@ -152,7 +169,7 @@ plt.ylabel('Loss')
 plt.title('NAFNet-small Training Curve')
 plt.legend()
 plt.grid(True)
-plt.savefig(os.path.join(save_dir, "nafnet_small_training_curve.png"))
+plt.savefig(os.path.join(save_dir, f"nafnet_small_training_curve_{dataset_tag}.png"))
 
 # ---- Total time ----
 elapsed = (time.time() - start_time) / 60
