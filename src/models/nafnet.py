@@ -114,9 +114,9 @@ class NAFNet(nn.Module):
         self,
         image_channels: int = 3,
         width: int = 32,
-        middle_blk_num: int = 2,
-        enc_blk_nums=(2, 2, 2, 2),
-        dec_blk_nums=(2, 2, 2, 2),
+        middle_blk_num: int = 1,
+        enc_blk_nums=(1, 1, 1, 8),
+        dec_blk_nums=(1, 1, 1, 1),
     ):
         super().__init__()
         self.intro = nn.Conv2d(image_channels, width, kernel_size=3, padding=1)

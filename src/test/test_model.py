@@ -38,12 +38,12 @@ def test_performance():
         from src.models.nafnet import NAFNet
         model = NAFNet(
             image_channels=3,
-            width=16,
+            width=32,
             middle_blk_num=1,
-            enc_blk_nums=[1, 1, 1, 1],
+            enc_blk_nums=[1, 1, 1, 8],
             dec_blk_nums=[1, 1, 1, 1]
         ).to(device)
-        checkpoint_path = "src/checkpoints/nafnet_small_best.pth"
+        checkpoint_path = "src/checkpoints/nafnet_small_best_sidd.pth"
     else:
         raise ValueError(f"Unknown MODEL_TYPE '{MODEL_TYPE}'")
 

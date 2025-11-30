@@ -91,8 +91,8 @@ if os.path.exists(history_path):
     print(f"Loaded previous training history ({len(train_loss_list)} epochs).")
 
 # Training setup
-epochs = 100
-patience = 10
+epochs = 30
+patience = 5
 no_improve = 0
 start_epoch = len(train_loss_list)
 
