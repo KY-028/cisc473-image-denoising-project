@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.ao.quantization as tq
 
 """
 Minimal NAFNet model for image denoising.
@@ -83,21 +84,45 @@ class NAFBlock(nn.Module):
         self.beta = nn.Parameter(torch.zeros(1, channels, 1, 1))
         self.gamma = nn.Parameter(torch.zeros(1, channels, 1, 1))
 
+        # Quant/dequant stubs to keep conv layers quantized while allowing
+        # surrounding ops (LayerNorm, gating, pooling) to stay in float.
+        self.q_before_conv1 = tq.QuantStub()
+        self.dq_after_conv2 = tq.DeQuantStub()
+        self.q_before_conv3 = tq.QuantStub()
+        self.dq_after_conv3 = tq.DeQuantStub()
+        self.q_before_conv4 = tq.QuantStub()
+        self.dq_after_conv4 = tq.DeQuantStub()
+        self.q_before_conv5 = tq.QuantStub()
+        self.dq_after_conv5 = tq.DeQuantStub()
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         residual = x
 
         x = self.norm1(x)
+        x = self.q_before_conv1(x)
         x = self.conv1(x)
         x = self.conv2(x)
+        x = self.dq_after_conv2(x)
+
         x = self.sg(x)
-        x = x * self.sca(x)
+        x = x * self.sca(x)  # keep SCA float
+
+        x = self.q_before_conv3(x)
         x = self.conv3(x)
+        x = self.dq_after_conv3(x)
         x = self.dropout1(x)
         x = residual + x * self.beta
 
-        y = self.conv4(self.norm2(x))
+        y = self.norm2(x)
+        y = self.q_before_conv4(y)
+        y = self.conv4(y)
+        y = self.dq_after_conv4(y)
+
         y = self.sg(y)
+
+        y = self.q_before_conv5(y)
         y = self.conv5(y)
+        y = self.dq_after_conv5(y)
         y = self.dropout2(y)
 
         return x + y * self.gamma
@@ -158,6 +183,8 @@ class NAFNet(nn.Module):
         Args:
             x: noisy input image.
         """
+        if x.is_quantized:
+            x = x.dequantize()
         b, c, h, w = x.shape
         x_padded = self._pad_image_size(x)
 

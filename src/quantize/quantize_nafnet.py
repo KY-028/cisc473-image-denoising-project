@@ -34,7 +34,7 @@ import torch.nn.quantized.dynamic as nnqd
 from torch.utils.data import DataLoader, Subset
 from torchmetrics.image import PeakSignalNoiseRatio, StructuralSimilarityIndexMeasure
 
-from src.models.nafnet import NAFNet
+from src.models.nafnet import LayerNorm2d, NAFNet, SimpleGate
 
 # Default locations
 DEFAULT_CHECKPOINT = "src/checkpoints/nafnet_small_best_sidd.pth"
@@ -48,14 +48,6 @@ QUANT_CONFIGS: List[Dict] = [
         "precision": "FP32",
         "method": "none",
         "description": "Reload FP32 checkpoint without quantization.",
-    },
-    {
-        "name": "dynamic_int8",
-        "precision": "INT8-dynamic",
-        "method": "dynamic",
-        "modules": [torch.nn.Conv2d, torch.nn.Linear],
-        "dtype": torch.qint8,
-        "description": "Dynamic weight-only quantization to INT8 (no calibration).",
     },
     {
         "name": "dynamic_fp16",
@@ -117,6 +109,36 @@ def apply_dynamic_quantization(
     return tq.quantize_dynamic(model_cpu, module_set, dtype=dtype)
 
 
+def check_quantized_conv_support(backend: str) -> bool:
+    """
+    Quick probe to see whether this PyTorch build actually has a quantized
+    Conv2d kernel for the given backend (important on macOS builds that often
+    ship without QuantizedCPU kernels).
+    """
+    class _Mini(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.quant = tq.QuantStub()
+            self.conv = nn.Conv2d(3, 3, kernel_size=3, padding=1)
+            self.dequant = tq.DeQuantStub()
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:  # type: ignore[override]
+            return self.dequant(self.conv(self.quant(x)))
+
+    try:
+        torch.backends.quantized.engine = backend
+        m = _Mini()
+        m.qconfig = tq.get_default_qconfig(backend)
+        prepared = tq.prepare(m, inplace=False)
+        prepared(torch.randn(1, 3, 8, 8))
+        converted = tq.convert(prepared, inplace=False)
+        with torch.inference_mode():
+            converted(torch.randn(1, 3, 8, 8))
+        return True
+    except Exception as err:
+        print(f"Static INT8 conv not available for backend '{backend}': {err}")
+        return False
+
 def apply_static_ptq(
     model: nn.Module,
     calib_loader: DataLoader,
@@ -128,17 +150,35 @@ def apply_static_ptq(
     wrapper.eval()
     wrapper.qconfig = tq.get_default_qconfig(backend)
 
+    # Keep ops that are not quantization-friendly in float, and keep top-level
+    # up/down/intro/ending layers in float. Only NAFBlocks' convs are quantized.
+    if isinstance(wrapper.model, NAFNet):
+        wrapper.model.intro.qconfig = None
+        wrapper.model.ending.qconfig = None
+        for mod in wrapper.model.downs:
+            mod.qconfig = None
+        for mod in wrapper.model.ups:
+            mod.qconfig = None
+
+    for module in wrapper.modules():
+        if isinstance(module, (nn.PixelShuffle, LayerNorm2d, nn.AdaptiveAvgPool2d, nn.Dropout, SimpleGate)):
+            module.qconfig = None
+        if isinstance(module, nn.Sequential):
+            # Disable quantization for upsample/downsample stacks or SCA branches.
+            if any(isinstance(m, nn.PixelShuffle) for m in module):
+                module.qconfig = None
+            if any(isinstance(m, nn.AdaptiveAvgPool2d) for m in module):
+                module.qconfig = None
+
     prepared = tq.prepare(wrapper, inplace=False)
     with torch.inference_mode():
         for noisy, _ in calib_loader:
             prepared(noisy.to("cpu"))
 
-    # IMPORTANT: Switch to 'fbgemm' for x86 CPUs or 'qnnpack' for ARM/Mobile
-    # 'qnnpack' is strictly for ARM/Mobile and often fails on x86 with "NotImplementedError"
-    # for certain ops like quantized::conv2d.new.
-    # Since we are likely on x86 (Linux VM), we force 'fbgemm' for the conversion step.
-    torch.backends.quantized.engine = 'fbgemm'
-    
+    # IMPORTANT: Use the backend passed to the function.
+    # Do NOT force 'fbgemm' here, as it breaks on Mac (ARM64) which needs 'qnnpack'.
+    torch.backends.quantized.engine = backend
+
     converted = tq.convert(prepared, inplace=False)
     return converted
 
@@ -414,15 +454,23 @@ def main():
         print("No quantized engine available; static PTQ will be skipped.")
 
     calib_loader = None
+    static_backend: Optional[str] = qengine
     if qengine is not None and any(cfg.get("method") == "static" for cfg in QUANT_CONFIGS):
-        calib_loader = build_calibration_loader(args.dataset, args.calib_batch_size, args.calib_samples)
+        if check_quantized_conv_support(qengine):
+            calib_loader = build_calibration_loader(args.dataset, args.calib_batch_size, args.calib_samples)
+        else:
+            static_backend = None
+            print(
+                "Static PTQ INT8 will be skipped: quantized Conv2d kernels are not available on this PyTorch build. "
+                "On macOS, install an x86/Linux build (fbgemm) or a macOS build with QuantizedCPU to enable static int8."
+            )
 
     results: List[Dict] = []
 
     for config in QUANT_CONFIGS:
         method = config.get("method")
-        if method == "static" and qengine is None:
-            print(f"Skipping static PTQ config '{config['name']}' because no quantized engine is available.")
+        if method == "static" and static_backend is None:
+            print(f"Skipping static PTQ config '{config['name']}' because no suitable quantized Conv2d backend is available.")
             continue
 
         print("=" * 80)
@@ -432,11 +480,22 @@ def main():
         fp32_model = load_fp32_model(args.checkpoint, device)
 
         try:
-            quant_model = apply_quantization(copy.deepcopy(fp32_model), config, calib_loader, qengine)
+            quant_model = apply_quantization(copy.deepcopy(fp32_model), config, calib_loader, static_backend)
         except Exception as err:
             print(f"Quantization failed for config '{config['name']}': {err}")
             continue
         quant_model.eval()
+
+        # Quick smoke test to catch unsupported quantized kernels early (e.g., missing qconv backend).
+        try:
+            with torch.inference_mode():
+                sample_input = torch.randn(1, 3, 64, 64, device=device)
+                quant_model(sample_input)
+        except Exception as err:
+            print(
+                f"Skipping config '{config['name']}' because quantized forward failed on a dummy input: {err}"
+            )
+            continue
 
         quant_name = config["name"]
         quant_path = os.path.join(args.save_dir, f"nafnet_small_{args.dataset}_{quant_name}.pth")

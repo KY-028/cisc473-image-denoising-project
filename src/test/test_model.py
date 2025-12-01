@@ -43,7 +43,7 @@ def test_performance():
             enc_blk_nums=[1, 1, 1, 8],
             dec_blk_nums=[1, 1, 1, 1]
         ).to(device)
-        checkpoint_path = "src/checkpoints/nafnet_small_best_sidd.pth"
+        checkpoint_path = "src/checkpoints/quantized/nafnet_small_sidd_static_ptq_int8.pth"
     else:
         raise ValueError(f"Unknown MODEL_TYPE '{MODEL_TYPE}'")
 
