@@ -68,6 +68,11 @@ python -m src.train.train_nafnet --dataset sidd
 ```bash
 python -m src.quantize.quantize_nafnet --dataset sidd --checkpoint src/checkpoints/nafnet_small_best_sidd.pth
 ```
+Note: for the full quantization experiment suite (extra configs, logs, and scripts), switch to the `quantization-experiments` branch first:
+```bash
+git checkout quantization-experiments
+```
+Then follow the branch-specific instructions in its README section.
 
 3) Evaluate PSNR/SSIM + latency (prints table; uses 10 samples with fixed seeds):
 ```bash
